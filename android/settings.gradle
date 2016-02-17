@@ -1,0 +1,3 @@
+rootProject.name = 'hmeWebView'
+
+include ':app'
