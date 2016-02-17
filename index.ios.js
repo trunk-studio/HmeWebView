@@ -27,24 +27,34 @@ var TEXT_INPUT_REF = 'urlInput';
 var WEBVIEW_REF = 'webview';
 var DEFAULT_URL = 'https://www.google.com';
 
+const ErrMsgBox = ( <View>
+        <Text>Wrong serial number,Please try again.</Text>
+      </View> );
+
 var hmeWebView = React.createClass({
 
   getInitialState: function() {
     return {
       url: DEFAULT_URL,
+      serialNumber: null,
       status: 'No Page Loaded',
       backButtonEnabled: false,
       forwardButtonEnabled: false,
       loading: true,
       showWebView: false,
       showNav: true,
+      piStatus: false,
+      message: null
     };
   },
 
   inputText: '',
 
   handleTextInputChange: function(event) {
-    this.inputText = event.nativeEvent.text;
+    // this.inputText = event.nativeEvent.text;
+    this.setState({
+      serialNumber: event.nativeEvent.text
+    });
   },
 
   _orientationDidChange: function(orientation) {
@@ -93,6 +103,7 @@ var hmeWebView = React.createClass({
         <TextInput
           ref={TEXT_INPUT_REF}
           placeholder="Enter Serial Number"
+          value={this.state.serialNumber}
           autoCapitalize="none"
           onSubmitEditing={this.onSubmitEditing}
           onChange={this.handleTextInputChange}
@@ -120,13 +131,17 @@ var hmeWebView = React.createClass({
         renderError={this.handleDomainError}  />
       ) : null ;
 
+    let Msg = this.state.piStatus? null : this.getMsgBox();
     return (
       <View style={[styles.container]}>
         {nav}
         {webView}
-        <View style={styles.statusBar}>
-          <Text style={styles.statusBarText}>{this.state.status}</Text>
-        </View>
+        {/*
+          <View style={styles.statusBar}>
+            <Text style={styles.statusBarText}>{this.state.status}</Text>
+          </View>
+        */}
+        {Msg}
       </View>
     );
   },
@@ -169,11 +184,7 @@ var hmeWebView = React.createClass({
       showWebView: true,
       showNav: true
     });
-    return (
-      <View>
-        <Text>Wrong serial number,Please try again.</Text>
-      </View>
-    );
+    return ErrMsgBox;
   },
 
   onSubmitEditing: function(event) {
@@ -182,7 +193,7 @@ var hmeWebView = React.createClass({
 
   async pressGoButton () {
 
-    var url = this.inputText;//'http://' + this.inputText + '.local';
+    var url = this.state.serialNumber;//'http://' + this.inputText + '.local';
     if(url.indexOf('http') != 0) {
       url = 'http://' + url;
     }
@@ -196,7 +207,15 @@ var hmeWebView = React.createClass({
       this.setState({
         url: url,
         showWebView: true,
-        showNav: false
+        showNav: false,
+        piStatus: true,
+        message: null
+      });
+    }
+    else {
+      this.setState({
+        piStatus: false,
+        message: 'Pi is not online, Please try again.'
       });
     }
     // if (url === this.state.url) {
@@ -213,11 +232,21 @@ var hmeWebView = React.createClass({
   async pingHmeDomain(url) {
     try {
       let response = await fetch( url );
-      return response.ok;
+      if (response)
+        return response.ok
+      return false;
     } catch(error) {
-      throw error;
+      // throw error;
     }
   },
+
+  getMsgBox() {
+    return (
+      <View>
+        <Text>{this.state.message}</Text>
+      </View>
+    );
+  }
 
 });
 
