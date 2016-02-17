@@ -15,7 +15,8 @@ var {
   TouchableOpacity,
   View,
   WebView,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } = React;
 
 var HEADER = '#3b5998';
@@ -105,8 +106,7 @@ var hmeWebView = React.createClass({
             </Text>
           </View>
         </TouchableOpacity>
-      </View>
-    ) : null ;
+      </View> ) : null ;
 
     let webView = this.state.showWebView? (
        <WebView
@@ -124,6 +124,9 @@ var hmeWebView = React.createClass({
       <View style={[styles.container]}>
         {nav}
         {webView}
+        <View style={styles.statusBar}>
+          <Text style={styles.statusBarText}>{this.state.status}</Text>
+        </View>
       </View>
     );
   },
@@ -141,11 +144,24 @@ var hmeWebView = React.createClass({
   },
 
   onNavigationStateChange: function(navState) {
-    this.setState({
-      backButtonEnabled: navState.canGoBack,
-      forwardButtonEnabled: navState.canGoForward,
-      loading: navState.loading,
-    });
+    if(navState.url.indexOf('/close') > 0)
+      this.setState({
+        backButtonEnabled: navState.canGoBack,
+        forwardButtonEnabled: navState.canGoForward,
+        loading: navState.loading,
+        status: navState.url,
+        showWebView: false,
+        showNav: true
+      });
+    else
+      this.setState({
+        backButtonEnabled: navState.canGoBack,
+        forwardButtonEnabled: navState.canGoForward,
+        loading: navState.loading,
+        status: navState.url,
+        showWebView: true,
+        showNav: false
+      });
   },
 
   handleDomainError: function() {
@@ -165,9 +181,13 @@ var hmeWebView = React.createClass({
   },
 
   async pressGoButton () {
-    let isExist = await this.pingHmeDomain();
 
-    var url = 'http://' + this.inputText + '.local';
+    var url = this.inputText;//'http://' + this.inputText + '.local';
+    if(url.indexOf('http') != 0) {
+      url = 'http://' + url;
+    }
+
+    let isExist = await this.pingHmeDomain(url);
 
     // dismiss keyoard
     this.refs[TEXT_INPUT_REF].blur();
@@ -190,9 +210,9 @@ var hmeWebView = React.createClass({
     // }
   },
 
-  async pingHmeDomain() {
+  async pingHmeDomain(url) {
     try {
-      let response = await fetch( 'http://192.168.168.67:3000');
+      let response = await fetch( url );
       return response.ok;
     } catch(error) {
       throw error;
