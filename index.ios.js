@@ -113,7 +113,7 @@ var hmeWebView = React.createClass({
         <TouchableOpacity onPress={this.pressGoButton}>
           <View style={styles.goButton}>
             <Text>
-               Go!
+               Enter!
             </Text>
           </View>
         </TouchableOpacity>
@@ -134,14 +134,18 @@ var hmeWebView = React.createClass({
     let Msg = this.state.piStatus? null : this.getMsgBox();
     return (
       <View style={[styles.container]}>
-        {nav}
-        {webView}
-        {/*
-          <View style={styles.statusBar}>
-            <Text style={styles.statusBarText}>{this.state.status}</Text>
+        <View style={styles.content}>
+          {webView}
+          <View style={styles.formContainer}>
+            {nav}
           </View>
-        */}
-        {Msg}
+          {/*
+            <View style={styles.statusBar}>
+              <Text style={styles.statusBarText}>{this.state.status}</Text>
+            </View>
+          */}
+          {Msg}
+        </View>
       </View>
     );
   },
@@ -242,8 +246,8 @@ var hmeWebView = React.createClass({
 
   getMsgBox() {
     return (
-      <View>
-        <Text>{this.state.message}</Text>
+      <View style={styles.msgBox}>
+        <Text style={styles.msgText}>{this.state.message}</Text>
       </View>
     );
   }
@@ -253,7 +257,10 @@ var hmeWebView = React.createClass({
 var styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: HEADER,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addressBarRow: {
     flexDirection: 'row',
@@ -268,12 +275,13 @@ var styles = StyleSheet.create({
     borderColor: 'transparent',
     borderRadius: 3,
     borderWidth: 1,
-    height: 24,
+    height: 35,
+    width: 250,
     paddingLeft: 10,
     paddingTop: 3,
     paddingBottom: 3,
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
   },
   navButton: {
     width: 20,
@@ -296,10 +304,12 @@ var styles = StyleSheet.create({
     borderRadius: 3,
   },
   goButton: {
-    height: 24,
+    height: 35,
     padding: 3,
+    width: 75,
     marginLeft: 8,
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: BGWASH,
     borderColor: 'transparent',
     borderRadius: 3,
@@ -319,6 +329,24 @@ var styles = StyleSheet.create({
     width: 20,
     marginRight: 6,
   },
+  msgBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  msgText: {
+    color: '#FFF',
+    textAlign: 'right',
+  }
 });
 
 exports.title = '<WebView>';
