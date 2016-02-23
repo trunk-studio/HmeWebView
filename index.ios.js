@@ -7,6 +7,8 @@
 var React = require('react-native');
 var StyleSheet = require('StyleSheet');
 var Orientation = require('react-native-orientation');
+import Dimensions from 'Dimensions';
+import PixelRatio from 'PixelRatio';
 var {
   AppRegistry,
   StyleSheet,
@@ -35,7 +37,7 @@ var hmeWebView = React.createClass({
 
   getInitialState: function() {
     return {
-      url: DEFAULT_URL,
+      url: null,
       serialNumber: null,
       status: 'No Page Loaded',
       backButtonEnabled: false,
@@ -132,20 +134,25 @@ var hmeWebView = React.createClass({
       ) : null ;
 
     let Msg = this.state.piStatus? null : this.getMsgBox();
-    return (
-      <View style={[styles.container]}>
-        <View style={styles.content}>
-          {webView}
-          <View style={styles.formContainer}>
-            {nav}
-          </View>
-          {/*
-            <View style={styles.statusBar}>
-              <Text style={styles.statusBarText}>{this.state.status}</Text>
-            </View>
-          */}
-          {Msg}
+
+    let SerialForm = !this.state.showWebView ? (
+      <View style={styles.content}>
+        <View style={styles.formContainer}>
+          {nav}
         </View>
+        {/*
+          <View style={styles.statusBar}>
+            <Text style={styles.statusBarText}>{this.state.status}</Text>
+          </View>
+        */}
+        {Msg}
+      </View>
+    ) : null ;
+
+    return (
+      <View style={styles.container}>
+        {webView}
+        {SerialForm}
       </View>
     );
   },
@@ -197,31 +204,42 @@ var hmeWebView = React.createClass({
 
   async pressGoButton () {
 
-    var url = this.state.serialNumber;//'http://' + this.inputText + '.local';
-    if(url.indexOf('http') != 0) {
-      url = 'http://' + url;
-    }
+    let url; //= this.state.serialNumber;//'http://' + this.inputText + '.local';
+    if(this.state.serialNumber && this.state.serialNumber.match(/^hmems[0-9]{4}$/)) {
+      url = 'http://' + this.state.serialNumber + '.local';
+      let isExist = await this.pingHmeDomain(url);
 
-    let isExist = await this.pingHmeDomain(url);
+      // dismiss keyoard
+      this.refs[TEXT_INPUT_REF].blur();
 
-    // dismiss keyoard
-    this.refs[TEXT_INPUT_REF].blur();
-
-    if(isExist) {
-      this.setState({
-        url: url,
-        showWebView: true,
-        showNav: false,
-        piStatus: true,
-        message: null
-      });
+      if(isExist) {
+        this.setState({
+          url: url,
+          showWebView: true,
+          showNav: false,
+          piStatus: true,
+          message: null
+        });
+      }
+      else {
+        this.setState({
+          piStatus: false,
+          message: 'Pi is not online, Please try again.'
+        });
+      }
     }
     else {
+      // url = null
       this.setState({
         piStatus: false,
-        message: 'Pi is not online, Please try again.'
-      });
+        message: 'Wrong serial number.',
+      })
     }
+    // if(this.state.serialNumber.indexOf('http') != 0) {
+    //   url = 'http://' + this.state.serialNumber ;
+    // }
+
+
     // if (url === this.state.url) {
     //   // this.reload();
     // } else {
@@ -235,9 +253,13 @@ var hmeWebView = React.createClass({
 
   async pingHmeDomain(url) {
     try {
-      let response = await fetch( url );
-      if (response)
-        return response.ok
+      let response;
+      if(url && url.length > 0) {
+        response = await fetch( url+'/rest/master/status' );
+        if (response.ok) {
+          return true
+        }
+      }
       return false;
     } catch(error) {
       // throw error;
@@ -257,10 +279,10 @@ var hmeWebView = React.createClass({
 var styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
+    // flexDirection: 'row',
     backgroundColor: HEADER,
-    alignItems: 'center',
-    justifyContent: 'center',
+    // alignItems: 'center',
+    // justifyContent: 'center',
   },
   addressBarRow: {
     flexDirection: 'row',
@@ -330,18 +352,17 @@ var styles = StyleSheet.create({
     marginRight: 6,
   },
   msgBox: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   formContainer: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
-    flex: 1,
     flexDirection: 'column',
+    justifyContent: 'center',
+    paddingTop: 10,
   },
   msgText: {
     color: '#FFF',
