@@ -38,7 +38,7 @@ var hmeWebView = React.createClass({
   getInitialState: function() {
     return {
       url: null,
-      serialNumber: null,
+      serialNumber: 'hmems',
       status: 'No Page Loaded',
       backButtonEnabled: false,
       forwardButtonEnabled: false,
